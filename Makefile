@@ -17,4 +17,7 @@ cinixwm: $(WM_SRC)
 clean:
 	rm -f cinix_demo cinixwm
 
-.PHONY: all clean
+install-real-wbar:
+	bash scripts/install-real-wbar-makepkg.sh
+
+.PHONY: all clean install-real-wbar

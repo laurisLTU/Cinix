@@ -13,7 +13,7 @@
 #define CINIX_WM_DOCK_W 720
 #define CINIX_WM_DOCK_H 76
 #define CINIX_WM_DOCK_APPS 8
-#define CINIX_WM_GUI_APPS 4
+#define CINIX_WM_MAX_GUI_APPS 128
 
 typedef struct {
     Window client;
@@ -33,9 +33,15 @@ typedef struct {
 
 typedef struct {
     char label[32];
-    char command[128];
+    char command[256];
     int icon;
 } CinixDockApp;
+
+typedef struct {
+    char label[64];
+    char command[256];
+    char icon[256];
+} CinixGuiApp;
 
 typedef struct {
     unsigned long desktop_top;
@@ -65,13 +71,12 @@ typedef struct {
     Window topbar;
     Window menu;
     Window gui_menu;
-    Window settings;
     Window dock;
     GC gc;
     int running;
     int menu_open;
     int gui_menu_open;
-    int settings_open;
+    int gui_menu_scroll;
     int drag_index;
     int drag_dx;
     int drag_dy;
@@ -86,6 +91,8 @@ typedef struct {
     double dock_launch[CINIX_WM_DOCK_APPS];
     int dock_app_count;
     CinixDockApp dock_apps[CINIX_WM_DOCK_APPS];
+    int gui_app_count;
+    CinixGuiApp gui_apps[CINIX_WM_MAX_GUI_APPS];
     CinixWMTheme theme;
     uint32_t* tux_pixels;
     int tux_width;
@@ -115,7 +122,6 @@ void cinix_wm_draw_desktop(CinixWM* wm);
 void cinix_wm_draw_topbar(CinixWM* wm);
 void cinix_wm_draw_menu(CinixWM* wm, int mouse_y);
 void cinix_wm_draw_gui_menu(CinixWM* wm, int mouse_y);
-void cinix_wm_draw_settings(CinixWM* wm, int mouse_y);
 void cinix_wm_draw_dock(CinixWM* wm);
 void cinix_wm_draw_frame(CinixWM* wm, CinixClient* client);
 void cinix_wm_raise_shell(CinixWM* wm);

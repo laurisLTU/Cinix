@@ -52,18 +52,18 @@ unsigned long cinix_wm_color(CinixWM* wm, const char* name, unsigned long fallba
 }
 
 void cinix_wm_theme_init(CinixWM* wm) {
-    wm->theme.desktop_top = cinix_wm_color(wm, "#78bff7", WhitePixel(wm->display, wm->screen));
-    wm->theme.desktop_bottom = cinix_wm_color(wm, "#d8f0ff", WhitePixel(wm->display, wm->screen));
-    wm->theme.topbar_top = cinix_wm_color(wm, "#f7fbff", WhitePixel(wm->display, wm->screen));
-    wm->theme.topbar_bottom = cinix_wm_color(wm, "#9fc5e8", WhitePixel(wm->display, wm->screen));
-    wm->theme.topbar_text = cinix_wm_color(wm, "#19314c", BlackPixel(wm->display, wm->screen));
-    wm->theme.glass_light = cinix_wm_color(wm, "#bff2ff", WhitePixel(wm->display, wm->screen));
-    wm->theme.glass_mid = cinix_wm_color(wm, "#2f9df6", WhitePixel(wm->display, wm->screen));
-    wm->theme.glass_dark = cinix_wm_color(wm, "#0c5ea8", BlackPixel(wm->display, wm->screen));
-    wm->theme.menu_bg = cinix_wm_color(wm, "#edf8ff", WhitePixel(wm->display, wm->screen));
-    wm->theme.menu_hover = cinix_wm_color(wm, "#b8e2ff", WhitePixel(wm->display, wm->screen));
-    wm->theme.border = cinix_wm_color(wm, "#38698f", BlackPixel(wm->display, wm->screen));
-    wm->theme.title_text = cinix_wm_color(wm, "#06243b", BlackPixel(wm->display, wm->screen));
+    wm->theme.desktop_top = cinix_wm_color(wm, "#5cbfff", WhitePixel(wm->display, wm->screen));
+    wm->theme.desktop_bottom = cinix_wm_color(wm, "#e9fbff", WhitePixel(wm->display, wm->screen));
+    wm->theme.topbar_top = cinix_wm_color(wm, "#ffffff", WhitePixel(wm->display, wm->screen));
+    wm->theme.topbar_bottom = cinix_wm_color(wm, "#8fd7ff", WhitePixel(wm->display, wm->screen));
+    wm->theme.topbar_text = cinix_wm_color(wm, "#07345b", BlackPixel(wm->display, wm->screen));
+    wm->theme.glass_light = cinix_wm_color(wm, "#f7ffff", WhitePixel(wm->display, wm->screen));
+    wm->theme.glass_mid = cinix_wm_color(wm, "#76d9ff", WhitePixel(wm->display, wm->screen));
+    wm->theme.glass_dark = cinix_wm_color(wm, "#1274c5", BlackPixel(wm->display, wm->screen));
+    wm->theme.menu_bg = cinix_wm_color(wm, "#def7ff", WhitePixel(wm->display, wm->screen));
+    wm->theme.menu_hover = cinix_wm_color(wm, "#f3ffff", WhitePixel(wm->display, wm->screen));
+    wm->theme.border = cinix_wm_color(wm, "#2a80b8", BlackPixel(wm->display, wm->screen));
+    wm->theme.title_text = cinix_wm_color(wm, "#032943", BlackPixel(wm->display, wm->screen));
     wm->theme.close_red = cinix_wm_color(wm, "#ff6159", WhitePixel(wm->display, wm->screen));
     wm->theme.min_yellow = cinix_wm_color(wm, "#ffbd2e", WhitePixel(wm->display, wm->screen));
     wm->theme.zoom_green = cinix_wm_color(wm, "#28c840", WhitePixel(wm->display, wm->screen));
@@ -89,6 +89,26 @@ static void fill_vgradient(CinixWM* wm, Drawable d, int x, int y, int w, int h, 
         XSetForeground(wm->display, wm->gc, cinix_wm_rgb(wm, r, g, b));
         XDrawLine(wm->display, d, wm->gc, x, y + i, x + w, y + i);
     }
+}
+
+static void draw_glass_panel(CinixWM* wm, Drawable d, int x, int y, int w, int h, int shine_h) {
+    fill_vgradient(wm, d, x, y, w, h, wm->theme.glass_light, wm->theme.glass_mid);
+    fill_vgradient(wm, d, x, y + h / 2, w, h - h / 2, wm->theme.glass_mid, wm->theme.topbar_bottom);
+    XSetForeground(wm->display, wm->gc, wm->theme.dock_edge);
+    XFillRectangle(wm->display, d, wm->gc, x + 2, y + 2, w - 4, shine_h);
+    XSetForeground(wm->display, wm->gc, wm->theme.glass_light);
+    XDrawLine(wm->display, d, wm->gc, x + 3, y + shine_h + 3, x + w - 4, y + 4);
+    XSetForeground(wm->display, wm->gc, wm->theme.border);
+    XDrawRectangle(wm->display, d, wm->gc, x, y, w - 1, h - 1);
+}
+
+static void draw_liquid_bubbles(CinixWM* wm, Drawable d, int w, int h) {
+    XSetForeground(wm->display, wm->gc, cinix_wm_rgb(wm, 238, 255, 255));
+    XFillArc(wm->display, d, wm->gc, w - 92, 5, 52, h + 8, 0, 360 * 64);
+    XFillArc(wm->display, d, wm->gc, w - 42, 2, 34, h + 12, 0, 360 * 64);
+    XSetForeground(wm->display, wm->gc, wm->theme.glass_mid);
+    XDrawArc(wm->display, d, wm->gc, w - 92, 5, 52, h + 8, 0, 360 * 64);
+    XDrawArc(wm->display, d, wm->gc, w - 42, 2, 34, h + 12, 0, 360 * 64);
 }
 
 static void draw_tux(CinixWM* wm) {
@@ -130,32 +150,44 @@ static void draw_tux(CinixWM* wm) {
 }
 
 void cinix_wm_draw_desktop(CinixWM* wm) {
+    int i;
     fill_vgradient(wm, wm->root, 0, CINIX_WM_TOPBAR_H, wm->root_width, wm->root_height - CINIX_WM_TOPBAR_H, wm->theme.desktop_top, wm->theme.desktop_bottom);
+    XSetForeground(wm->display, wm->gc, cinix_wm_rgb(wm, 255, 255, 255));
+    for (i = 0; i < 7; ++i) {
+        int x = 44 + i * 138;
+        int y = CINIX_WM_TOPBAR_H + 38 + (i % 3) * 78;
+        XDrawArc(wm->display, wm->root, wm->gc, x, y, 72, 32, 0, 360 * 64);
+    }
     draw_tux(wm);
 }
 
 void cinix_wm_draw_topbar(CinixWM* wm) {
-    fill_vgradient(wm, wm->topbar, 0, 0, wm->root_width, CINIX_WM_TOPBAR_H, wm->theme.topbar_top, wm->theme.topbar_bottom);
+    draw_glass_panel(wm, wm->topbar, 0, 0, wm->root_width, CINIX_WM_TOPBAR_H, 11);
+    draw_liquid_bubbles(wm, wm->topbar, wm->root_width, CINIX_WM_TOPBAR_H);
     XSetForeground(wm->display, wm->gc, wm->theme.glass_light);
     XFillArc(wm->display, wm->topbar, wm->gc, 8, 4, 76, 22, 0, 360 * 64);
+    XSetForeground(wm->display, wm->gc, wm->theme.dock_edge);
+    XFillArc(wm->display, wm->topbar, wm->gc, 14, 6, 64, 8, 0, 360 * 64);
     XSetForeground(wm->display, wm->gc, wm->theme.border);
     XDrawArc(wm->display, wm->topbar, wm->gc, 8, 4, 76, 22, 0, 360 * 64);
     XSetForeground(wm->display, wm->gc, wm->theme.topbar_text);
     XDrawString(wm->display, wm->topbar, wm->gc, 27, 19, "Start", 5);
-    XDrawString(wm->display, wm->topbar, wm->gc, 112, 19, "Cinix Aqua WM", 14);
+    XDrawString(wm->display, wm->topbar, wm->gc, 112, 19, "Cinix Liquid Glass WM", 21);
 }
 
 void cinix_wm_draw_menu(CinixWM* wm, int mouse_y) {
-    const char* items[] = { "GUI Applications >", "Cinix Dock Settings", "Xterm", "Exit Cinix" };
+    const char* items[] = { "GUI Applications >", "Restart wbar", "Xterm", "Exit Cinix" };
     int i;
-    fill_vgradient(wm, wm->menu, 0, 0, CINIX_WM_MENU_W, CINIX_WM_MENU_ITEM_H * 4, wm->theme.menu_bg, wm->theme.topbar_bottom);
+    draw_glass_panel(wm, wm->menu, 0, 0, CINIX_WM_MENU_W, CINIX_WM_MENU_ITEM_H * 4, 24);
     XSetForeground(wm->display, wm->gc, wm->theme.border);
     XDrawRectangle(wm->display, wm->menu, wm->gc, 0, 0, CINIX_WM_MENU_W - 1, CINIX_WM_MENU_ITEM_H * 4 - 1);
     for (i = 0; i < 4; ++i) {
         int y = i * CINIX_WM_MENU_ITEM_H;
         if (mouse_y >= y && mouse_y < y + CINIX_WM_MENU_ITEM_H) {
             XSetForeground(wm->display, wm->gc, wm->theme.menu_hover);
-            XFillRectangle(wm->display, wm->menu, wm->gc, 3, y + 3, CINIX_WM_MENU_W - 6, CINIX_WM_MENU_ITEM_H - 6);
+            XFillArc(wm->display, wm->menu, wm->gc, 7, y + 4, CINIX_WM_MENU_W - 14, CINIX_WM_MENU_ITEM_H - 8, 0, 360 * 64);
+            XSetForeground(wm->display, wm->gc, wm->theme.glass_mid);
+            XDrawArc(wm->display, wm->menu, wm->gc, 7, y + 4, CINIX_WM_MENU_W - 14, CINIX_WM_MENU_ITEM_H - 8, 0, 360 * 64);
         }
         XSetForeground(wm->display, wm->gc, wm->theme.title_text);
         XDrawString(wm->display, wm->menu, wm->gc, 12, y + 20, items[i], (int)strlen(items[i]));
@@ -163,43 +195,45 @@ void cinix_wm_draw_menu(CinixWM* wm, int mouse_y) {
 }
 
 void cinix_wm_draw_gui_menu(CinixWM* wm, int mouse_y) {
-    const char* items[] = { "Xterm", "HTop", "Files", "Firefox" };
     int i;
-    fill_vgradient(wm, wm->gui_menu, 0, 0, 190, CINIX_WM_MENU_ITEM_H * CINIX_WM_GUI_APPS, wm->theme.menu_bg, wm->theme.topbar_bottom);
+    int max_visible = (wm->root_height - CINIX_WM_TOPBAR_H - 16) / CINIX_WM_MENU_ITEM_H;
+    int items;
+    int width = 230;
+    if (max_visible < 1) max_visible = 1;
+    if (max_visible > 14) max_visible = 14;
+    items = wm->gui_app_count > 0 ? wm->gui_app_count : 1;
+    if (items > max_visible) items = max_visible;
+    draw_glass_panel(wm, wm->gui_menu, 0, 0, width, CINIX_WM_MENU_ITEM_H * items, 24);
     XSetForeground(wm->display, wm->gc, wm->theme.border);
-    XDrawRectangle(wm->display, wm->gui_menu, wm->gc, 0, 0, 189, CINIX_WM_MENU_ITEM_H * CINIX_WM_GUI_APPS - 1);
-    for (i = 0; i < CINIX_WM_GUI_APPS; ++i) {
+    XDrawRectangle(wm->display, wm->gui_menu, wm->gc, 0, 0, width - 1, CINIX_WM_MENU_ITEM_H * items - 1);
+    if (wm->gui_app_count <= 0) {
+        XSetForeground(wm->display, wm->gc, wm->theme.title_text);
+        XDrawString(wm->display, wm->gui_menu, wm->gc, 38, 20, "No GUI apps found", 17);
+        return;
+    }
+    for (i = 0; i < items; ++i) {
+        int app_index = wm->gui_menu_scroll + i;
         int y = i * CINIX_WM_MENU_ITEM_H;
+        if (app_index >= wm->gui_app_count) break;
         if (mouse_y >= y && mouse_y < y + CINIX_WM_MENU_ITEM_H) {
             XSetForeground(wm->display, wm->gc, wm->theme.menu_hover);
-            XFillRectangle(wm->display, wm->gui_menu, wm->gc, 3, y + 3, 184, CINIX_WM_MENU_ITEM_H - 6);
+            XFillArc(wm->display, wm->gui_menu, wm->gc, 6, y + 4, width - 12, CINIX_WM_MENU_ITEM_H - 8, 0, 360 * 64);
+            XSetForeground(wm->display, wm->gc, wm->theme.glass_mid);
+            XDrawArc(wm->display, wm->gui_menu, wm->gc, 6, y + 4, width - 12, CINIX_WM_MENU_ITEM_H - 8, 0, 360 * 64);
         }
         XSetForeground(wm->display, wm->gc, wm->theme.glass_mid);
         XFillArc(wm->display, wm->gui_menu, wm->gc, 12, y + 7, 16, 16, 0, 360 * 64);
         XSetForeground(wm->display, wm->gc, wm->theme.title_text);
-        XDrawString(wm->display, wm->gui_menu, wm->gc, 38, y + 20, items[i], (int)strlen(items[i]));
+        XDrawString(wm->display, wm->gui_menu, wm->gc, 38, y + 20, wm->gui_apps[app_index].label, (int)strlen(wm->gui_apps[app_index].label));
     }
-}
-
-void cinix_wm_draw_settings(CinixWM* wm, int mouse_y) {
-    const char* items[] = { "Add Xterm", "Add HTop", "Add Files", "Add Firefox" };
-    int i;
-    fill_vgradient(wm, wm->settings, 0, 0, 300, 182, wm->theme.menu_bg, wm->theme.topbar_bottom);
-    XSetForeground(wm->display, wm->gc, wm->theme.border);
-    XDrawRectangle(wm->display, wm->settings, wm->gc, 0, 0, 299, 181);
-    fill_vgradient(wm, wm->settings, 1, 1, 298, 28, wm->theme.glass_light, wm->theme.glass_mid);
-    XSetForeground(wm->display, wm->gc, wm->theme.title_text);
-    XDrawString(wm->display, wm->settings, wm->gc, 12, 20, "Cinix Dock Settings", 19);
-    for (i = 0; i < CINIX_WM_GUI_APPS; ++i) {
-        int y = 46 + i * 30;
-        if (mouse_y >= y && mouse_y < y + 26) {
-            XSetForeground(wm->display, wm->gc, wm->theme.menu_hover);
-            XFillRectangle(wm->display, wm->settings, wm->gc, 12, y, 276, 26);
-        }
-        XSetForeground(wm->display, wm->gc, wm->theme.glass_mid);
-        XFillArc(wm->display, wm->settings, wm->gc, 22, y + 5, 16, 16, 0, 360 * 64);
+    if (wm->gui_app_count > items) {
         XSetForeground(wm->display, wm->gc, wm->theme.title_text);
-        XDrawString(wm->display, wm->settings, wm->gc, 48, y + 18, items[i], (int)strlen(items[i]));
+        if (wm->gui_menu_scroll > 0) {
+            XDrawString(wm->display, wm->gui_menu, wm->gc, width - 20, 18, "^", 1);
+        }
+        if (wm->gui_menu_scroll + items < wm->gui_app_count) {
+            XDrawString(wm->display, wm->gui_menu, wm->gc, width - 20, CINIX_WM_MENU_ITEM_H * items - 8, "v", 1);
+        }
     }
 }
 
@@ -233,9 +267,11 @@ static void draw_dock_icon(CinixWM* wm, const CinixDockApp* app, int cx, int bas
 
 void cinix_wm_draw_dock(CinixWM* wm) {
     int i;
-    fill_vgradient(wm, wm->dock, 0, 0, CINIX_WM_DOCK_W, CINIX_WM_DOCK_H, wm->theme.dock_edge, wm->theme.dock_bg);
+    XSetForeground(wm->display, wm->gc, cinix_wm_rgb(wm, 0, 0, 0));
+    XFillRectangle(wm->display, wm->dock, wm->gc, 0, 0, CINIX_WM_DOCK_W, CINIX_WM_DOCK_H);
+    fill_vgradient(wm, wm->dock, 0, 12, CINIX_WM_DOCK_W, CINIX_WM_DOCK_H - 12, wm->theme.dock_edge, wm->theme.dock_bg);
     XSetForeground(wm->display, wm->gc, wm->theme.border);
-    XDrawArc(wm->display, wm->dock, wm->gc, 0, -20, CINIX_WM_DOCK_W - 1, CINIX_WM_DOCK_H + 32, 0, 360 * 64);
+    XDrawArc(wm->display, wm->dock, wm->gc, 0, -2, CINIX_WM_DOCK_W - 1, CINIX_WM_DOCK_H + 20, 0, 360 * 64);
     for (i = 0; i < wm->dock_app_count; ++i) {
         int pulse = (int)(8.0 * wm->dock_launch[i]);
         int size = 42 + (int)(16.0 * wm->dock_anim[i]) + pulse;
@@ -246,11 +282,14 @@ void cinix_wm_draw_dock(CinixWM* wm) {
 }
 
 void cinix_wm_draw_frame(CinixWM* wm, CinixClient* client) {
-    XSetForeground(wm->display, wm->gc, wm->theme.shadow);
-    XDrawRectangle(wm->display, client->frame, wm->gc, 2, 2, client->width + 1, client->height + CINIX_WM_TITLE_H + 1);
+    XSetForeground(wm->display, wm->gc, cinix_wm_rgb(wm, 70, 115, 150));
+    XDrawRectangle(wm->display, client->frame, wm->gc, 3, 3, client->width + 1, client->height + CINIX_WM_TITLE_H + 1);
+    XSetForeground(wm->display, wm->gc, wm->theme.menu_bg);
+    XFillRectangle(wm->display, client->frame, wm->gc, 1, CINIX_WM_TITLE_H, client->width, client->height + 1);
     XSetForeground(wm->display, wm->gc, wm->theme.border);
     XDrawRectangle(wm->display, client->frame, wm->gc, 0, 0, client->width + 1, client->height + CINIX_WM_TITLE_H + 1);
-    fill_vgradient(wm, client->frame, 1, 1, client->width, CINIX_WM_TITLE_H, wm->theme.glass_light, wm->theme.glass_mid);
+    draw_glass_panel(wm, client->frame, 1, 1, client->width, CINIX_WM_TITLE_H, 10);
+    draw_liquid_bubbles(wm, client->frame, client->width, CINIX_WM_TITLE_H);
     XSetForeground(wm->display, wm->gc, wm->theme.close_red);
     XFillArc(wm->display, client->frame, wm->gc, 10, 6, 14, 14, 0, 360 * 64);
     XSetForeground(wm->display, wm->gc, wm->theme.min_yellow);
@@ -264,7 +303,9 @@ void cinix_wm_draw_frame(CinixWM* wm, CinixClient* client) {
 }
 
 void cinix_wm_raise_shell(CinixWM* wm) {
-    XRaiseWindow(wm->display, wm->dock);
+    if (wm->dock != 0) {
+        XRaiseWindow(wm->display, wm->dock);
+    }
     XRaiseWindow(wm->display, wm->topbar);
 }
 

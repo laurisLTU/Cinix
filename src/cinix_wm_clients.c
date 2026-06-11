@@ -3,6 +3,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+static void set_window_opacity(CinixWM* wm, Window window, double opacity) {
+    Atom opacity_atom = XInternAtom(wm->display, "_NET_WM_WINDOW_OPACITY", False);
+    unsigned long value;
+    if (opacity < 0.15) opacity = 0.15;
+    if (opacity > 1.0) opacity = 1.0;
+    value = (unsigned long)(0xffffffffUL * opacity);
+    XChangeProperty(wm->display, window, opacity_atom, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&value, 1);
+}
+
 int cinix_wm_find_client(CinixWM* wm, Window window) {
     int i;
     for (i = 0; i < wm->client_count; ++i) {
@@ -43,6 +52,8 @@ void cinix_wm_manage(CinixWM* wm, Window window) {
     cinix_wm_refresh_title(wm, client);
 
     client->frame = XCreateSimpleWindow(wm->display, wm->root, client->x, client->y, (unsigned int)(client->width + 2), (unsigned int)(client->height + CINIX_WM_TITLE_H + 2), 0, wm->theme.border, wm->theme.menu_bg);
+    set_window_opacity(wm, client->frame, 0.88);
+    set_window_opacity(wm, client->client, 0.92);
     XSelectInput(wm->display, client->frame, ExposureMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | SubstructureNotifyMask);
     XSelectInput(wm->display, client->client, PropertyChangeMask | StructureNotifyMask);
     XAddToSaveSet(wm->display, client->client);
