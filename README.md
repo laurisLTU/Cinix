@@ -2,7 +2,7 @@
 <img width="1280" height="797" alt="image" src="https://github.com/user-attachments/assets/383aa4f8-4914-47eb-933b-4ee9aed9ad0d" />
 
 Cinix is a C/X11 GUI and window manager project.
-
+Future Updates Maybe: Wbar instead of Cinix Dock
 ## Builds
 
 ```bash
