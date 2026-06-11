@@ -1,4 +1,4 @@
-# Cinix
+# Cinix (Latest Version: Alpha 1.0)
 
 Cinix is a C/X11 GUI and window manager project.
 
